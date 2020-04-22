@@ -149,8 +149,7 @@ class MainView : View("Computer Graphic") {
                 }
             }
 
-
-            text("Кролик с лицевой стороной")
+            text("Кролик + быстрая отрисовка")
             hbox {
                 scrollpane {
                     imageview() {
@@ -158,18 +157,18 @@ class MainView : View("Computer Graphic") {
                         val file = File("C:\\Users\\user\\IdeaProjects\\ComputerGraphic1\\src\\main\\kotlin\\com\\example\\demo\\app\\files\\file.obj")
                         val model = Model.fromFile(file)
                         val points = model.points
-                        val points2d = model.get2dPoints()
-                        for (i in 0 until points2d.size)
-                            points2d[i] = arrayOf((points2d[i][0] * 4000 + 500), (-points2d[i][1] * 4000 + 500))
+                        for (i in 0 until points.size)
+                            points[i] = arrayOf((points[i][0] * 4000 + 500), (-points[i][1] * 4000 + 500), (points[i][2] * 4000 + height / 2))
                         val polygons = model.polygons
                         if (polygons != null) {
                             for (polygon in polygons) {
-                                if (Util.absVector(points[polygon[0]], points[polygon[1]], points[polygon[2]])[2] > 0) {
-                                    Util.fillTriangle(im, points2d[polygon[0]], points2d[polygon[1]], points2d[polygon[2]],
+                                val intensity = Util.absVector(model.points[polygon[0]], model.points[polygon[1]], model.points[polygon[2]])[2]
+                                if (intensity < 0) {
+                                    Util.fillTriangle(im, points[polygon[0]], points[polygon[1]], points[polygon[2]],
                                             color = Util.getColor(
-                                                    (Math.random() * 255).toInt(),
-                                                    (Math.random() * 255).toInt(),
-                                                    (Math.random() * 255).toInt()))
+                                                    (-intensity * 255).toInt(),
+                                                    (-intensity * 255).toInt(),
+                                                    (-intensity * 255).toInt()))
                                 }
                             }
                         }
@@ -179,23 +178,28 @@ class MainView : View("Computer Graphic") {
                 }
             }
 
-            text("Кролик с лицевой стороной")
+
+
+            text("Кролик с z буфер")
             hbox {
                 scrollpane {
                     imageview() {
-                        var im = BufferedImage(1000, 1000, BufferedImage.TYPE_INT_RGB)
+                        val width = 1000
+                        val height = 1000
+                        val zbufer = Array(width) { Array(height) { Int.MIN_VALUE } }
+                        var im = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
                         val file = File("C:\\Users\\user\\IdeaProjects\\ComputerGraphic1\\src\\main\\kotlin\\com\\example\\demo\\app\\files\\file.obj")
                         val model = Model.fromFile(file)
-                        val points = model.points
-                        val points2d = model.get2dPoints()
-                        for (i in 0 until points2d.size)
-                            points2d[i] = arrayOf((points2d[i][0] * 4000 + 500), (-points2d[i][1] * 4000 + 500))
+                        val points = ArrayList(model.points)
+                        for (i in 0 until points.size) {
+                            points[i] = arrayOf((points[i][0] * 4000 + width / 2), (-points[i][1] * 4000 + height / 2), (points[i][2] * 4000 + height / 2))
+                        }
                         val polygons = model.polygons
                         if (polygons != null) {
                             for (polygon in polygons) {
                                 val intensity = Util.absVector(points[polygon[0]], points[polygon[1]], points[polygon[2]])[2]
-                                if (intensity > 0) {
-                                    Util.fillTriangle(im, points2d[polygon[0]], points2d[polygon[1]], points2d[polygon[2]],
+                                if (intensity < 0) {
+                                    Util.fillTriangleWithZBuffer(im, zbufer, points[polygon[0]], points[polygon[1]], points[polygon[2]],
                                             color = Util.getColor(
                                                     (-intensity * 255).toInt(),
                                                     (-intensity * 255).toInt(),
