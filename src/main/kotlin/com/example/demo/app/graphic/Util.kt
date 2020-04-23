@@ -1,8 +1,10 @@
 package com.example.demo.app.graphic
 
 import tornadofx.*
+import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -62,6 +64,48 @@ class Util {
                     if(minOf(baricentric[0], baricentric[1], baricentric[2]) >= 0) {
                         zbufer[i][j] = if (zbufer[i][j] < point[2]) {
                             image.setRGB(i, j, color)
+                            point[2].toInt()
+                        }
+                        else zbufer[i][j]
+                    }
+                }
+            }
+        }
+
+        fun fillTriangleWithZBufferTexture(image: BufferedImage, zbufer:Array<Array<Int>>,
+                                           point0: Array<Double>, point1: Array<Double>, point2: Array<Double>,
+                                           bright : Double, texture: Array<Array<Int>>) {
+            val minx = minOf(point0[0], point1[0], point2[0]).toInt()
+            val maxx = maxOf(point0[0], point1[0], point2[0]).toInt()
+            val miny = minOf(point0[1], point1[1], point2[1]).toInt()
+            val maxy = maxOf(point0[1], point1[1], point2[1]).toInt()
+            for(i in minx..maxx) {
+                for(j in miny..maxy) {
+                    val point = arrayOf(i.toDouble(), j.toDouble(), 0.0)
+                    val baricentric = decartToBaricentric(point, point0, point1, point2)
+                    point[2] = baricentric[0] * point0[2] + baricentric[1] * point1[2] + baricentric[2] * point2[2]
+                    if(minOf(baricentric[0], baricentric[1], baricentric[2]) >= 0) {
+                        zbufer[i][j] = if (zbufer[i][j] < point[2]) {
+                            val coord = arrayOf(
+                                    (baricentric[0] * point0[0] + baricentric[1] * point1[0] + baricentric[2] * point2[0]),
+                                    (baricentric[0] * point0[1] + baricentric[1] * point1[1] + baricentric[2] * point2[1]))
+                            val norm = arrayOf((coord[0] / sqrt(coord[0].pow(2) + coord[1].pow(2))),
+                                    (coord[1] / sqrt(coord[0].pow(2) + coord[1].pow(2))))
+                            val color = Color((texture[(norm[0] * (texture.size - 1)).toInt()][(norm[1] * (texture[0].size - 1)).toInt()]))
+
+                            var r = (color.red * bright).toInt()
+                            var g = (color.green * bright).toInt()
+                            var b = (color.blue * bright).toInt()
+
+                            if (r > 255)
+                                r = 255
+                            if (g > 255)
+                                g = 255
+                            if (b > 255)
+                                b = 255
+
+
+                            image.setRGB(i, j,  Color(r, g, b).rgb)
                             point[2].toInt()
                         }
                         else zbufer[i][j]

@@ -178,8 +178,6 @@ class MainView : View("Computer Graphic") {
                 }
             }
 
-
-
             text("Кролик с z буфер")
             hbox {
                 scrollpane {
@@ -188,7 +186,7 @@ class MainView : View("Computer Graphic") {
                         val height = 1000
                         val zbufer = Array(width) { Array(height) { Int.MIN_VALUE } }
                         var im = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-                        val file = File("C:\\Users\\user\\IdeaProjects\\ComputerGraphic1\\src\\main\\kotlin\\com\\example\\demo\\app\\files\\file.obj")
+                        val file = File("C:\\Users\\user\\IdeaProjects\\ComputerGraphic1\\src\\main\\kotlin\\com\\example\\demo\\app\\files\\stanford-bunny-obj-1\\stanford-bunny.obj")
                         val model = Model.fromFile(file)
                         val points = ArrayList(model.points)
                         for (i in 0 until points.size) {
@@ -204,6 +202,38 @@ class MainView : View("Computer Graphic") {
                                                     (-intensity * 255).toInt(),
                                                     (-intensity * 255).toInt(),
                                                     (-intensity * 255).toInt()))
+                                }
+                            }
+                        }
+                        im = im.getSubimage(0, 0, 1000, 500)
+                        image = SwingFXUtils.toFXImage(im, null)
+                    }
+                }
+            }
+
+            text("Кролик с текстурой")
+            hbox {
+                scrollpane {
+                    imageview() {
+                        val width = 1000
+                        val height = 1000
+                        val zbufer = Array(width) { Array(height) { Int.MIN_VALUE } }
+                        var im = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+                        val file = File("C:\\Users\\user\\IdeaProjects\\ComputerGraphic1\\src\\main\\kotlin\\com\\example\\demo\\app\\files\\stanford-bunny-obj-1\\stanford-bunny.obj")
+                        val textureFile = File("C:\\Users\\user\\IdeaProjects\\ComputerGraphic1\\src\\main\\kotlin\\com\\example\\demo\\app\\files\\stanford-bunny-obj-1\\negz.png")
+                        val texture = Model.getTexture(textureFile)
+                        val model = Model.fromFile(file)
+                        val points = ArrayList(model.points)
+                        for (i in 0 until points.size) {
+                            points[i] = arrayOf((points[i][0] * 4000 + width / 2), (-points[i][1] * 4000 + height / 2), (points[i][2] * 4000 + height / 2))
+                        }
+                        val polygons = model.polygons
+                        if (polygons != null) {
+                            for (polygon in polygons) {
+                                val intensity = Util.absVector(points[polygon[0]], points[polygon[1]], points[polygon[2]])[2]
+                                if (intensity < 0) {
+                                    Util.fillTriangleWithZBufferTexture(im, zbufer, points[polygon[0]], points[polygon[1]], points[polygon[2]],
+                                            (-intensity), texture)
                                 }
                             }
                         }

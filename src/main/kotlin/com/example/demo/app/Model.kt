@@ -1,6 +1,9 @@
 package com.example.demo.app
 
+import java.awt.image.BufferedImage
 import java.io.File
+import java.nio.Buffer
+import javax.imageio.ImageIO
 
 data class Model(var points: ArrayList<Array<Double>>, var polygons: ArrayList<Array<Int>>? = null) {
     fun get3dPoint(i : Int) = points[i]
@@ -14,6 +17,11 @@ data class Model(var points: ArrayList<Array<Double>>, var polygons: ArrayList<A
     }
 
     companion object {
+
+        fun getTexture(file: File): Array<Array<Int>> {
+            val texture = ImageIO.read(file)
+            return Array(texture.width) { x-> Array(texture.height) {y-> texture.getRGB(x, y) } }
+        }
 
         fun fromFile(file : File) : Model {
             val modelList = ArrayList<Array<Double>>()
